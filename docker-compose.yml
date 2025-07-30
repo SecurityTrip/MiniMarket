@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  admin-server:
+    build:
+      context: ./AdminService
+      dockerfile: Dockerfile
+    container_name: admin-server
+    ports:
+      - "9090:9090"
+    networks:
+      - backend
+
+  order-service:
+    build:
+      context: ./OrderService
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/orderdb
+      - SPRING_DATASOURCE_USERNAME=order_user
+      - SPRING_DATASOURCE_PASSWORD=secret_password
+    depends_on:
+      - db
+    networks:
+      - backend
+
+  inventory-service:
+    build:
+      context: ./InventoryService
+      dockerfile: Dockerfile
+    ports:
+      - "8082:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/inventorydb
+      - SPRING_DATASOURCE_USERNAME=order_user
+      - SPRING_DATASOURCE_PASSWORD=secret_password
+    depends_on:
+      - db
+    networks:
+      - backend
+
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: orderdb
+      POSTGRES_USER: order_user
+      POSTGRES_PASSWORD: secret_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - orderdb_data:/var/lib/postgresql/data
+    networks:
+      - backend
+
+volumes:
+  orderdb_data:
+  inventorydb_data:
+
+networks:
+  backend:

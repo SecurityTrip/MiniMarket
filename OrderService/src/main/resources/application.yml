@@ -1,0 +1,59 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/orderdb
+    username: order_user
+    password: secret_password
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  application:
+    name: order-service
+
+  boot:
+    admin:
+      client:
+        url: http://admin-server:9090
+        auto-registration: true
+        instance:
+          prefer-ip: true
+        connection-timeout: 5s
+        read-timeout: 5s
+
+server:
+  port: 8080
+
+resilience4j:
+  retry:
+    instances:
+      inventoryRetry:
+        max-attempts: 3
+        wait-duration: 1s
+
+  circuitbreaker:
+    instances:
+      inventoryCircuitBreaker:
+        register-health-indicator: true
+        sliding-window-size: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 5s
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: resilience4j.circuitbreakers, health, info
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
